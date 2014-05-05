@@ -1,0 +1,125 @@
+<?xml version="1.0" encoding="utf-16"?>
+<Configuration>
+  <ViewDefinitions>
+    <View>
+      <Name>MenuShell</Name>
+      <ViewSelectedBy>
+        <TypeName>MenuShell</TypeName>
+      </ViewSelectedBy>
+      <CustomControl>
+        <CustomEntries>
+          <CustomEntry>
+            <CustomItem>
+              <Frame>
+                <CustomItem>
+                  <ExpressionBinding>
+                    <ScriptBlock>
+    $menuShell = $_
+
+    
+    Clear-Host
+    
+
+
+    if ($menuShell.Name) {
+        $host.UI.RawUI.Windowtitle =$menuShell.Name 
+    }
+   
+    $menuShell.Menu.GetEnumerator() | 
+        Sort-Object {
+            $_.Key -replace "[\(\)]",""
+        } |
+        ForEach-Object {
+            if ($menuShell.OptionColor -and $menuShell.OptionColor[$_.Key -replace "[\(\)]",""]) {
+                Write-Host -ForegroundColor $menuShell.OptionColor[$_.Key -replace "[\(\)]",""] -Object ((" " * 5) + $_.Key)            
+            } else {
+                Write-Host ((" " * 5) + $_.Key)
+            }
+        }
+
+
+    if ($menuShell.isnested) {
+        Write-Host "    (B)ack"
+    }
+    
+    
+    ""
+    
+    $invalidChoice = $true
+
+    do {
+        $choice = Read-Host
+        $choice = $choice.Trim()
+        if ($choice -eq 'Exit' -or $choice -eq 'Quit' -or $choice -eq 'Back' -or $choice -eq 'B') { Clear-Host; break }
+        $ValidChoice = @(@(@($menuShell.Menu.Keys) + '(B)ack') | 
+            Where-Object {
+                
+                $choice -eq ($_ -ireplace "[\(\)]",'') -or
+                ($_ -match "\((.{1,})\)" -and ($choice -eq ($Matches.1)))
+            })
+
+        if ($ValidChoice -and $ValidChoice.Count -eq 1) {
+            if ($ValidChoice -eq 'B' -or $validChoice -eq 'Back') {
+                Clear-Host
+                break
+            } elseif ($menuShell.Menu[$($ValidChoice)] -is [ScriptBlock]) {
+                
+                &amp; $menuShell.Menu[$($ValidChoice)]  | Out-Host                
+            } elseif ($menuShell.Menu[$($ValidChoice)] -is [Hashtable]){
+                $subMenu = New-Object PSObject -Property @{
+                    Menu = $menuShell.Menu[$($ValidChoice)]
+                    Name = $menuShell.Name
+                    OptionColor = $menuShell.OptionColor
+                    IsNested = $true
+                }
+
+                $subMenu.pstypenames.clear()
+                $subMenu.pstypenames.Add('MenuShell')
+                $subMenu | Out-Host
+
+            } elseif ($menuShell.Menu[$($ValidChoice)] -is [string]) {
+                Write-Host $menuShell.Menu[$($ValidChoice)]
+            }
+
+            if ($menu.ExitOnValidSelection) {
+                $invalidChoice = $false    
+            } else {
+
+                Write-Host
+                Write-Host
+                Write-Host
+                Write-Host
+
+                 $menuShell.Menu.GetEnumerator() | 
+                    Sort-Object {
+                        $_.Key -replace "[\(\)]",""
+                    } |
+                    ForEach-Object {
+                        if ($menuShell.OptionColor -and $menuShell.OptionColor[$_.Key -replace "[\(\)]",""]) {
+                            Write-Host -ForegroundColor $menuShell.OptionColor[$_.Key -replace "[\(\)]",""] -Object ((" " * 5) + $_.Key)            
+                        } else {
+                            Write-Host ((" " * 5) + $_.Key)
+                        }
+                    }
+                    
+
+                if ($menuShell.isnested) {
+                    Write-Host "    (B)ack"
+                }
+            }
+            
+        }
+    } while ($invalidChoice)
+
+    
+</ScriptBlock>
+                  </ExpressionBinding>
+                </CustomItem>
+              </Frame>
+            </CustomItem>
+          </CustomEntry>
+        </CustomEntries>
+      </CustomControl>
+    </View>
+  </ViewDefinitions>
+</Configuration>
